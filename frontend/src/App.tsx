@@ -56,21 +56,32 @@ export default function App() {
   };
 
   const doCopy = async (selections: { doc: string; path: string }[]) => {
+    if (status === "copying") return; // trava clique repetido
+
     setStatus("copying");
-    setMessage("Copiando arquivos para a pasta de saída e renomeando com 'x'…");
+    setMessage("Enviando arquivos para a pasta de saída e sobrescrevendo quando necessário...");
 
     try {
       const out = await copyFiles(selections);
       const ok = out.copied.length;
       const fail = out.failed.length;
 
+      // LIMPA TUDO (fila + resultados)
+      setDocs([]);
+      setResponse(null);
+
       setStatus("done");
-      setMessage(`Finalizado. Sucesso: ${ok}. Falhas: ${fail}.`);
+      setMessage(`Finalizado. Arquivos enviados: ${ok}. Falhas: ${fail}.`);
     } catch (e: any) {
+      // Mesmo em erro, limpa para evitar clique repetido no mesmo estado (você pediu “limpar tudo”)
+      setDocs([]);
+      setResponse(null);
+
       setStatus("error");
-      setMessage(`Falha ao copiar: ${e?.message ?? "erro desconhecido"}`);
+      setMessage(`Falha ao enviar arquivos: ${e?.message ?? "erro desconhecido"}`);
     }
   };
+
 
   return (
     <div className="consulta-page">
@@ -96,6 +107,7 @@ export default function App() {
               onSearch={doSearch}
               canSearch={docs.length > 0}
               searching={status === "searching"}
+              locked={!!response || status === "copying"} // trava quando já tem resultado ou copiando
             />
             <div className="hr" />
             <div className="small">

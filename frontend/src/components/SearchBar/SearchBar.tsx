@@ -7,6 +7,7 @@ type Props = {
     onSearch: () => void;
     canSearch: boolean;
     searching: boolean;
+    locked: boolean;
 };
 
 function sanitizeInput(value: string) {
@@ -14,7 +15,7 @@ function sanitizeInput(value: string) {
     return value.replace(/\s+/g, "").replace(/[^A-Za-z0-9-]/g, "").slice(0, 60);
 }
 
-export function SearchBar({ onAdd, onSearch, canSearch, searching }: Props) {
+export function SearchBar({ onAdd, onSearch, canSearch, searching, locked }: Props) {
     const [value, setValue] = useState("");
 
     const normalizedLen = useMemo(() => getNormalizedLen(value), [value]);
@@ -26,6 +27,8 @@ export function SearchBar({ onAdd, onSearch, canSearch, searching }: Props) {
         return <span className="pill bad"><AlertTriangle size={16} /> 40–60 (normalizado)</span>;
     }, [value.length, valid]);
 
+    const addDisabled = locked || searching || !valid;
+
     return (
         <div>
             <div className="search-bar">
@@ -33,14 +36,28 @@ export function SearchBar({ onAdd, onSearch, canSearch, searching }: Props) {
                 <input
                     value={value}
                     onChange={(e) => setValue(sanitizeInput(e.target.value))}
-                    placeholder="Cole/digite o documento."
+                    placeholder="Cole/digite o documento (40–60). Aceita com ou sem hífen."
                     maxLength={60}
+                    readOnly={locked || searching}
                 />
-                <button className="btn" disabled={!valid} onClick={() => { onAdd(value); setValue(""); }}>
+
+                <button
+                    className="btn"
+                    disabled={addDisabled}
+                    onClick={() => {
+                        onAdd(value);
+                        setValue("");
+                    }}
+                >
                     <Plus size={18} /> Adicionar
                 </button>
-                <button className="btn primary" disabled={!canSearch || searching} onClick={onSearch}>
-                    <Search size={18} /> {searching ? "Analisando Documentos..." : "Analisar"}
+
+                <button
+                    className="btn primary"
+                    disabled={locked || !canSearch || searching}
+                    onClick={onSearch}
+                >
+                    <Search size={18} /> {searching ? "Analisando..." : "Analisar"}
                 </button>
             </div>
 

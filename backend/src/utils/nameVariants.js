@@ -2,8 +2,6 @@ function normalizeDoc(raw) {
     return String(raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
-// Insere hífen após 40 caracteres (entre “penúltimo e último bloco” no seu padrão)
-// Para qualquer tamanho > 40 (até 60), não só 44.
 function hyphenateAfter40(normalized) {
     if (normalized.length <= 40) return normalized;
     return `${normalized.slice(0, 40)}-${normalized.slice(40)}`;

@@ -7,7 +7,7 @@ let cache = {
     meta: null
 };
 
-const CACHE_TTL_MS = 60_000; // 1 min (ajuste conforme necessidade)
+const CACHE_TTL_MS = 60_000;
 
 async function getOrBuildIndex(onProgress) {
     const now = Date.now();

@@ -1,30 +1,35 @@
 import { useMemo, useState } from "react";
-import { isValidDocLen } from "../../utils/validators";
-import { toHyphenatedIfPossible } from "../../utils/docFormat";
+import { isValidDocLen, getNormalizedLen } from "../../utils/validators";
 
 type Props = {
     onAdd: (doc: string) => void;
+    locked: boolean;
+    searching: boolean;
 };
 
-export function DocumentInput({ onAdd }: Props) {
-    const [value, setValue] = useState("");
+function sanitizeInput(value: string) {
+    return value.replace(/\s+/g, "").replace(/[^A-Za-z0-9-]/g, "").slice(0, 60);
+}
 
-    const formattedHint = useMemo(() => toHyphenatedIfPossible(value), [value]);
+export function DocumentInput({ onAdd, locked, searching }: Props) {
+    const [value, setValue] = useState("");
     const valid = useMemo(() => isValidDocLen(value), [value]);
+    const normalizedLen = useMemo(() => getNormalizedLen(value), [value]);
 
     return (
         <div style={{ display: "grid", gap: 8 }}>
             <label style={{ fontWeight: 700 }}>Número do documento</label>
-
             <input
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="11 blocos de 4 caracteres; hífen entre o 10º e 11º bloco"
-                style={{ padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+                onChange={(e) => setValue(sanitizeInput(e.target.value))}
+                placeholder="Cole/digite o documento (40–60). Aceita com ou sem hífen."
+                maxLength={60}
+                readOnly={locked || searching}
             />
 
             <div style={{ fontSize: 12, color: "#444" }}>
-                Formato detectado: <b>{valid ? "OK" : "incompleto"}</b> · Sugestão: <b>{formattedHint}</b>
+                Contagem: digitado {value.length}/60 · normalizado {normalizedLen}/60 ·{" "}
+                <b>{valid ? "OK" : "inválido (40–60)"}</b>
             </div>
 
             <button
@@ -32,8 +37,7 @@ export function DocumentInput({ onAdd }: Props) {
                     onAdd(value);
                     setValue("");
                 }}
-                disabled={!valid}
-                style={{ padding: 10, borderRadius: 8, border: "1px solid #ccc", cursor: valid ? "pointer" : "not-allowed" }}
+                disabled={locked || searching || !valid}
             >
                 Adicionar documento
             </button>
